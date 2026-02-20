@@ -36,6 +36,23 @@ function sendCommand(cmd) {
 }
 
 /**
+ * isPianobarRunning - checks if the pianobar process is currently running.  
+ * This can be used to conditionally enable/disable the extension buttons or 
+ * show a warning if pianobar is not running.
+ * 
+ * @returns boolean
+ */
+function isPianobarRunning() {
+    try {
+        const [success, stdout] = GLib.spawn_command_line_sync('pgrep -x pianobar');
+        return success && stdout.length > 0;
+    } catch (e) {
+        console.error('Error checking pianobar process:', e);
+        return false;
+    }
+}
+
+/**
  * PianobarExtension - the main extension class.  Adds buttons to the top bar and connects
  * them to the appropriate commands.
  */
@@ -51,30 +68,58 @@ export default class PianobarExtension extends Extension {
         this._indicator.add_child(icon);
 
         const buttons = [
-            { label: '⏭ Next Track', cmd: 'n' },
-            { label: '⏯ Play/Pause', cmd: 'p' },
-            { label: '⏹ Stop', cmd: 'q' },
-            { label: '⏺ Download Current Track', cmd: 'd' },
-            { label: '🔁 Switch Station', cmd: 'ss' },
-            { label: '👍 Like Current Track', cmd: '+' },
-            { label: '👎 Dislike Current Track', cmd: '-' },
-            { label: '🥱 Tired (pause for a month)', cmd: 't' },
-            { label: '📜 Show Upcoming', cmd: 'u' },
-            { label: '🎱 Explain', cmd: 'e' },
+            { label: '⏭ Next Track', cmd: 'n', requiresRunning: true },
+            { label: '⏯ Play/Pause', cmd: 'p', requiresRunning: false },
+            { label: '⏹ Stop', cmd: 'q', requiresRunning: true },
+            { label: '⏺ Download Current Track', cmd: 'd', requiresRunning: true },
+            { label: '🔁 Switch Station', cmd: 'ss', requiresRunning: true },
+            { label: '👍 Like Current Track', cmd: '+', requiresRunning: true },
+            { label: '👎 Dislike Current Track', cmd: '-', requiresRunning: true },
+            { label: '🥱 Tired (pause for a month)', cmd: 't', requiresRunning: true },
+            { label: '📜 Show Upcoming', cmd: 'u', requiresRunning: true },
+            { label: '🎱 Explain', cmd: 'e', requiresRunning: true },
         ];
 
-        for (const { label, cmd } of buttons) {
+        this._items = [];
+
+        for (const { label, cmd, requiresRunning } of buttons) {
             const item = new PopupMenu.PopupMenuItem(label);
-            item.connect('activate', () => sendCommand(cmd));
+            item.connect('activate', () => {
+                if (item.reactive) sendCommand(cmd);
+            });
             this._indicator.menu.addMenuItem(item);
+            this._items.push({ item, requiresRunning });
         }
+
+        // Poll every 3 seconds
+        this._updateState();
+        this._pollId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 3, () => {
+            this._updateState();
+            return GLib.SOURCE_CONTINUE;
+        });
 
         // Add to the left side of the top bar
         Main.panel.addToStatusArea('pianobar-controls', this._indicator);
     }
 
+    _updateState() {
+        const running = isPianobarRunning();
+
+        for (const { item, requiresRunning} of this._items) {
+            const enabled = !requiresRunning || running;
+            item.reactive = enabled;
+            item.can_focus = enabled;
+            item.label.set_style(enabled ? '' : 'color: gray;');
+        }
+    }
+
     disable() {
+        if (this._pollId) {
+            GLib.source_remove(this._pollId);
+            this._pollId = null;
+        }
         this._indicator?.destroy();
         this._indicator = null;
+        this._items = null;
     }
 }
