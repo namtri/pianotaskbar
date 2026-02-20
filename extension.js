@@ -14,6 +14,8 @@ import GLib from 'gi://GLib';
 import St from 'gi://St';
 import Clutter from 'gi://Clutter';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
+import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
+import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
 
 /**
@@ -39,70 +41,40 @@ function sendCommand(cmd) {
  */
 export default class PianobarExtension extends Extension {
     enable() {
-        this._box = new St.BoxLayout({ style_class: 'panel-status-menu-box' });
+        // PanelMenu.Button args: menu alignment (0=left, 0.5=center, 1=right), accessible name
+        this._indicator = new PanelMenu.Button(0, 'Pianobar Controls');
+
+        const icon = new St.Label({
+            text: '🎵',
+            y_align: Clutter.ActorAlign.CENTER,
+        });
+        this._indicator.add_child(icon);
 
         const buttons = [
-            { label: '⏭', cmd: 'n', tooltip: 'Next song' },
-            { label: '⏯', cmd: 'p', tooltip: 'Play/Pause' },
-            { label: '⏹', cmd: 'q', tooltip: 'Stop' },
-            { label: '⏺', cmd: 'd', tooltip: 'Download current song' },
-            { label: '🔁', cmd: 'ss', tooltip: 'Switch station' },
-            { label: '👍', cmd: '+', tooltip: 'Like current song' },
-            { label: '👎', cmd: '-', tooltip: 'Dislike current song' },
-            { label: '🥱', cmd: 't', tooltip: 'Tired (won\'t play for a month)' },
+            { label: '⏭ Next Track', cmd: 'n' },
+            { label: '⏯ Play/Pause', cmd: 'p' },
+            { label: '⏹ Stop', cmd: 'q' },
+            { label: '⏺ Download Current Track', cmd: 'd' },
+            { label: '🔁 Switch Station', cmd: 'ss' },
+            { label: '👍 Like Current Track', cmd: '+' },
+            { label: '👎 Dislike Current Track', cmd: '-' },
+            { label: '🥱 Tired (pause for a month)', cmd: 't' },
+            { label: '📜 Show Upcoming', cmd: 'u' },
+            { label: '🎱 Explain', cmd: 'e' },
         ];
 
-        for (const { label, cmd, tooltip } of buttons) {
-            const btn = new St.Button({
-                label,
-                style_class: 'panel-button',
-                style: 'padding: 0 2px;',
-                can_focus: true,
-                track_hover: true,
-                reactive: true
-            });
-
-            btn.set_accessible_name(tooltip);
-
-            // Create tooltip label, hidden by default
-            const tooltipLabel = new St.Label({
-                text: tooltip,
-                style_class: 'dash-label',
-                visible: false
-            });
-            Main.layoutManager.addChrome(tooltipLabel);
-            tooltipLabel.hide();
-
-            btn.connect('notify::hover', () => {
-                if (btn.hover) {
-                    const [x, y] = btn.get_transformed_position();
-                    tooltipLabel.set_position(Math.floor(x), Math.floor(y + btn.get_height() + 5));
-                    tooltipLabel.ease({
-                        opacity: 255,
-                        duration: 100,
-                        mode: Clutter.AnimationMode.EASE_OUT_QUAD,
-                        onComplete: () => tooltipLabel.show()
-                    });
-                } else {
-                    tooltipLabel.ease({
-                        opacity: 0,
-                        duration: 100,
-                        mode: Clutter.AnimationMode.EASE_IN_QUAD,
-                        onComplete: () => tooltipLabel.hide()
-                    });
-                }
-            });
-
-            btn.connect('clicked', () => sendCommand(cmd));
-            this._box.add_child(btn);
+        for (const { label, cmd } of buttons) {
+            const item = new PopupMenu.PopupMenuItem(label);
+            item.connect('activate', () => sendCommand(cmd));
+            this._indicator.menu.addMenuItem(item);
         }
 
         // Add to the left side of the top bar
-        Main.panel._leftBox.add_child(this._box);
+        Main.panel.addToStatusArea('pianobar-controls', this._indicator);
     }
 
     disable() {
-        this._box?.destroy();
-        this._box = null;
+        this._indicator?.destroy();
+        this._indicator = null;
     }
 }
