@@ -5,6 +5,7 @@
  FIFO.
  
  **Dependency:** pianobar (https://6xq.net/pianobar/)
+ 
  **Dependency:** control-pianobar (https://malabarba.github.io/control-pianobar/)
  
  **author:** namtri

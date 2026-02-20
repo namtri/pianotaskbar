@@ -7,7 +7,7 @@
  * Dependency: pianobar (https://6xq.net/pianobar/)
  * Dependency: control-pianobar (https://malabarba.github.io/control-pianobar/)
  * 
- * author: namtri.com
+ * author: namtri
  */
 import GLib from 'gi://GLib';
 import St from 'gi://St';
