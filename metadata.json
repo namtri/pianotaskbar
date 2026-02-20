@@ -1,0 +1,7 @@
+{
+  "name": "Control PianoTaskBar",
+  "description": "Building a desktop extension for pianobar",
+  "uuid": "pianotaskbar@namtri.com",
+  "shell-version": ["46", "47"],
+  "version": 1
+}
