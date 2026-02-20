@@ -9,6 +9,7 @@
  * 
  * author: namtri
  */
+
 import GLib from 'gi://GLib';
 import St from 'gi://St';
 import Clutter from 'gi://Clutter';
@@ -32,6 +33,10 @@ function sendCommand(cmd) {
     }
 }
 
+/**
+ * PianobarExtension - the main extension class.  Adds buttons to the top bar and connects
+ * them to the appropriate commands.
+ */
 export default class PianobarExtension extends Extension {
     enable() {
         this._box = new St.BoxLayout({ style_class: 'panel-status-menu-box' });
@@ -51,6 +56,7 @@ export default class PianobarExtension extends Extension {
             const btn = new St.Button({
                 label,
                 style_class: 'panel-button',
+                style: 'padding: 0 2px;',
                 can_focus: true,
                 track_hover: true,
                 reactive: true
@@ -61,7 +67,7 @@ export default class PianobarExtension extends Extension {
             // Create tooltip label, hidden by default
             const tooltipLabel = new St.Label({
                 text: tooltip,
-                style_class: 'dash-label',// 'pianobar-tooltip',
+                style_class: 'dash-label',
                 visible: false
             });
             Main.layoutManager.addChrome(tooltipLabel);
