@@ -62,22 +62,23 @@ export default class PianobarExtension extends Extension {
         this._indicator = new PanelMenu.Button(0, 'Pianobar Controls');
 
         const icon = new St.Label({
-            text: '🎵',
+            text: '🎵 PianoTaskBar',
             y_align: Clutter.ActorAlign.CENTER,
         });
         this._indicator.add_child(icon);
 
         const buttons = [
-            { label: '⏭ Next Track', cmd: 'n', requiresRunning: true },
-            { label: '⏯ Play/Pause', cmd: 'p', requiresRunning: false },
-            { label: '⏹ Stop', cmd: 'q', requiresRunning: true },
-            { label: '⏺ Download Current Track', cmd: 'd', requiresRunning: true },
+            { label: '⏭️ Next Track', cmd: 'n', requiresRunning: true },
+            { label: '⏯️ Play/Pause', cmd: 'p', requiresRunning: false },
+            { label: '⏹️ Stop', cmd: 'q', requiresRunning: true },
+            { label: '💾 Download Current Track', cmd: 'd', requiresRunning: true },
             { label: '🔁 Switch Station', cmd: 'ss', requiresRunning: true },
             { label: '👍 Like Current Track', cmd: '+', requiresRunning: true },
             { label: '👎 Dislike Current Track', cmd: '-', requiresRunning: true },
             { label: '🥱 Tired (pause for a month)', cmd: 't', requiresRunning: true },
-            { label: '📜 Show Upcoming', cmd: 'u', requiresRunning: true },
             { label: '🎱 Explain', cmd: 'e', requiresRunning: true },
+            { label: '📜 Show Upcoming', cmd: 'u', requiresRunning: true },
+            { label: '🪶 Show History', cmd: 'h', requiresRunning: true },
         ];
 
         this._items = [];
